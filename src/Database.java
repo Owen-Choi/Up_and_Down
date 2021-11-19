@@ -427,4 +427,9 @@ public class Database {
         return todaysDate.toString();
     }
 
+    public ResultSet FindByID(String id) throws SQLException {
+        String IDFind = "select * from guest  WHERE id=" + id;
+        return stmt.executeQuery(IDFind);
+    }
+
 }

@@ -14,7 +14,6 @@ public class Client extends Application {
     static final int serverPort = 10032;
     static StringTokenizer st;
     static String userID = null;
-
     public void start(Stage primaryStage)throws Exception{
         primaryStage.setTitle("javaFX");
         Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));//login.fxml에 있는 정보를 불러옴
@@ -32,10 +31,11 @@ public class Client extends Application {
     public void Client_Setting(String uid) throws IOException, UnknownHostException{
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         InetAddress ip = InetAddress.getByName("localhost");
+        userID = uid;
         Socket user = new Socket(ip, serverPort);
         DataInputStream dis = new DataInputStream(user.getInputStream());
         DataOutputStream dos = new DataOutputStream(user.getOutputStream());
-        userID = uid;
+        dos.writeUTF(userID);
         Writer writer = new Writer(user, dis, dos);
         Reader reader = new Reader(user, dis, dos, writer);
         Thread writer_thread = new Thread(writer);

@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.ResultSet;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -9,7 +10,9 @@ public class Server {
     static int user_num = 0;
     static Accept accept_thread;
     static Vector<Client_Handler> user_list = new Vector<>();
-    public static void main(String[] args) throws Exception{
+    static String nameStore;
+    static Database db = new Database();
+    public static void main(String[] args) throws Exception {
         ServerSocket serverSocket = new ServerSocket(port);
         accept_thread = new Accept(serverSocket);
         Thread at = new Thread(accept_thread);
@@ -18,16 +21,20 @@ public class Server {
         /*JFrame mainLobby = new Main_Lobby("Main Lobby");
         mainLobby.setVisible(true);*/
     }
-    public void Name_setter(String msg) throws Exception {
-        accept_thread.ID_setter(msg);
-    }
-    public void Create_Handler(Socket user, DataInputStream dis, DataOutputStream dos, String userID, boolean canPlay) throws IOException {
-        Client_Handler client_handler = new Client_Handler(user, dis, dos, userID, true);
+    public void Create_Handler(Socket user, DataInputStream dis, DataOutputStream dos, boolean canPlay) throws IOException {
+        Client_Handler client_handler = new Client_Handler(user, dis, dos, true);
         user_list.add(client_handler);
+        client_handler.setID();
         System.out.println("new user : " + client_handler.userID);
         Thread t = new Thread(client_handler);
         t.start();
     }
+    /*public String getID() {
+        return nameStore;
+    }
+    public void setID(String tempName) {
+        nameStore = tempName;
+    }*/
 }
 
 class Client_Handler implements Runnable {
@@ -40,11 +47,12 @@ class Client_Handler implements Runnable {
     StringTokenizer st;
     //유저 정보 필요한거 더 추가하기. 고유번호
     //로그인 후 서버가 만들어 줄 클라이언트의 정보에 대한 생성자.
-    public Client_Handler(Socket user, DataInputStream dis, DataOutputStream dos, String userID, boolean CanPlay) throws IOException {
+    public Client_Handler(Socket user, DataInputStream dis, DataOutputStream dos, boolean CanPlay) throws IOException {
         this.user = user;
         this.dis = dis;
         this.dos = dos;
-        this.userID = userID;
+        // Client가 만들어진 직후 BroadCast를 통해 할당되므로 생성자에서는 null로 초기화한다.
+        this.userID = null;
         this.CanPlay = CanPlay;
     }
     @Override
@@ -73,7 +81,14 @@ class Client_Handler implements Runnable {
             e.printStackTrace();
         }
     }
-
+    public void setID() throws IOException{
+        String ID_broadCast;
+        // 클라이언트가 최초에 자신의 ID를 보내줄 것이다.
+        // 그 ID로 Client_handler의 ID를 설정한 뒤 실행시킨다.
+        // 이렇게 하는 이유는 Accept_thread에서 ID를 바로 바꿀 방법이 없기 때문이다.
+        ID_broadCast = dis.readUTF();
+        this.userID = ID_broadCast;
+    }
     public void MSG_Processor(String msg) throws IOException {
         st = new StringTokenizer(msg, "##");
         String tempHeader = st.nextToken();
