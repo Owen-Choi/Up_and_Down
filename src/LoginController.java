@@ -35,7 +35,6 @@ public class LoginController implements Initializable{
             StackPane root = (StackPane) SignUpBtn.getScene().getRoot();
             root.getChildren().add(SignUp);
 
-
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -73,12 +72,14 @@ public class LoginController implements Initializable{
                 Alert alert = new Alert(AlertType.INFORMATION);
                 alert.setContentText("로그인 성공");
                 alert.show();
-                Parent mainPage = FXMLLoader.load(getClass().getResource("main.fxml"));
+                Parent mainPage = FXMLLoader.load(getClass().getResource("Lobby.fxml"));
                 StackPane root = (StackPane) loginBtn.getScene().getRoot();
                 root.getChildren().add(mainPage);
                 // 클라이언트 만들기
                 Client client = new Client();
                 client.Client_Setting(uId);
+                // 기존 로그인창 끄기
+
             }
             else{
                 Alert alert = new Alert(AlertType.INFORMATION);
