@@ -35,6 +35,7 @@ public class Client extends Application {
         Socket user = new Socket(ip, serverPort);
         DataInputStream dis = new DataInputStream(user.getInputStream());
         DataOutputStream dos = new DataOutputStream(user.getOutputStream());
+        // ID broadcasting : 서버에게 클라이언트의 이름을 알려준다.
         dos.writeUTF(userID);
         Writer writer = new Writer(user, dis, dos);
         Reader reader = new Reader(user, dis, dos, writer);
