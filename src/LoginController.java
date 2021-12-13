@@ -1,6 +1,8 @@
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.application.Platform;
@@ -13,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 public class LoginController implements Initializable{
     Database db = new Database();
@@ -34,9 +37,8 @@ public class LoginController implements Initializable{
             Parent SignUp = FXMLLoader.load(getClass().getResource("SignUp.fxml"));
             StackPane root = (StackPane) SignUpBtn.getScene().getRoot();
             root.getChildren().add(SignUp);
-
-
-        }catch(Exception e){
+        }
+        catch(Exception e){
             e.printStackTrace();
         }
     }
@@ -69,6 +71,7 @@ public class LoginController implements Initializable{
             }
             else if (db.loginCheck(uId, upassword)) {
                 db.AccessRecord(uId);
+                Server server = new Server();
                 //   server.accept_deliver(uId);
                 Alert alert = new Alert(AlertType.INFORMATION);
                 alert.setContentText("로그인 성공");
@@ -76,6 +79,7 @@ public class LoginController implements Initializable{
                 Parent mainPage = FXMLLoader.load(getClass().getResource("main.fxml"));
                 StackPane root = (StackPane) loginBtn.getScene().getRoot();
                 root.getChildren().add(mainPage);
+
                 // 클라이언트 만들기
                 Client client = new Client();
                 client.Client_Setting(uId);
