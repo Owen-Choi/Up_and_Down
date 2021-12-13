@@ -10,9 +10,9 @@ public class Database {
     /* 데이터베이스와의 연결에 사용할 변수들 */
     Connection con = null;
     Statement stmt = null;
-    String url = "jdbc:mysql://localhost:3306/game";
+    String url = "jdbc:mysql://localhost/game";
     String user = "root";
-    String passwd = "12345";
+    String passwd = "1007";
     private Object RequestContextHolder;
 
     Database() {	//Database 객체 생성 시 데이터베이스 서버와 연결한다.

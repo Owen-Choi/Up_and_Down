@@ -73,7 +73,7 @@ public class LoginController implements Initializable{
                 Alert alert = new Alert(AlertType.INFORMATION);
                 alert.setContentText("로그인 성공");
                 alert.show();
-                Parent mainPage = FXMLLoader.load(getClass().getResource("main.fxml"));
+                Parent mainPage = FXMLLoader.load(getClass().getResource("Lobby.fxml"));
                 StackPane root = (StackPane) loginBtn.getScene().getRoot();
                 root.getChildren().add(mainPage);
                 // 클라이언트 만들기
