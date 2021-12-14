@@ -9,18 +9,20 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class UserChoiceController implements Initializable {
 
     @FXML private Button UserInfo;
     @FXML private Button UserVs;
+    String temp;
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         UserInfo.setOnAction(e-> {
             try {
                 UserInfoAction(e);
-            } catch (IOException ioException) {
+            } catch (IOException | SQLException ioException) {
                 ioException.printStackTrace();
             }
         });
@@ -32,9 +34,13 @@ public class UserChoiceController implements Initializable {
             }
         });
     }
-    public void UserInfoAction(ActionEvent e) throws IOException {
+    public void UserInfoAction(ActionEvent e) throws IOException, SQLException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Info.fxml"));
         Parent root = (Parent) loader.load();
+
+        InfoController ic = loader.getController();
+        ic.initData(temp);
+
         Stage stage = new Stage();
         stage.setTitle("INFO");
         stage.setScene(new Scene(root));
@@ -47,6 +53,9 @@ public class UserChoiceController implements Initializable {
         stage.setTitle("VS");
         stage.setScene(new Scene(root));
         stage.show();
+    }
+    public void initData(String data) {
+        temp = data;
     }
 
 }

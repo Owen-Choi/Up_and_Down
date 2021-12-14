@@ -22,19 +22,6 @@ public class InfoController implements Initializable {
     ResultSet info;
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        Database db = new Database();
-        String NN=null;
-        info=db.viewInfo(null);
-        try {
-            ID.setText(info.getString("ID"));
-            NAME.setText(info.getString("NAME"));
-            NICKNAME.setText(info.getString("NICKNAME"));
-            RECORD.setText(info.getString("RECORD"));
-            CONNECTION.setText(info.getString("CONNECTION"));
-            EMAIL.setText(info.getString("EMAIL"));
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
 
    }
 
@@ -44,6 +31,23 @@ public class InfoController implements Initializable {
         Stage pop;
         pop = (Stage) cancelBtn.getScene().getWindow();
         pop.close();
+    }
+
+    public void initData(String data) throws SQLException {
+        Database db = new Database();
+        info = db.viewInfo(data);
+        info.next();
+        try {
+            ID.setText(info.getString("ID"));
+            NAME.setText(info.getString("NAME"));
+            NICKNAME.setText(info.getString("NICKNAME"));
+            RECORD.setText(info.getString("WIN"));
+            CONNECTION.setText(info.getString("IP"));
+            EMAIL.setText(info.getString("EMAIL"));
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
     }
 
 }

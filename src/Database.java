@@ -187,7 +187,7 @@ public class Database {
 
         try {
             //guest 테이블에서 nick이라는 닉네임을 가진 회원의 정보를 조회한다.
-            String viewStr = "SELECT * FROM guest WHERE nickname='" + nick + "' ";
+            String viewStr = "SELECT * FROM guest WHERE id ='" + nick + "' ";
             msg = stmt.executeQuery(viewStr);
             
             System.out.println("[Server] 회원정보 조회 성공");	//정상적으로 수행되면 성공을 콘솔로 알린다.

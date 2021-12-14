@@ -229,6 +229,10 @@ public class Client extends Application implements Initializable {
             try{
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("UserChoice.fxml"));
                 Parent root = (Parent) loader.load();
+
+                UserChoiceController ucc = loader.getController();
+                ucc.initData(list);
+
                 Stage stage = new Stage();
                 stage.setTitle("Choice");
                 stage.setScene(new Scene(root));
