@@ -14,6 +14,7 @@ public class Server {
     static Vector<Client_Handler> user_list = new Vector<>();
     static String nameStore;
     static Database db = new Database();
+    static String inviter = "", invitee = "";
     public static void main(String[] args) throws Exception {
         ServerSocket serverSocket = new ServerSocket(port);
         accept_thread = new Accept(serverSocket);
@@ -62,7 +63,6 @@ class Client_Handler implements Runnable {
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     String userID;
     boolean CanPlay;
-    StringTokenizer st;
     //유저 정보 필요한거 더 추가하기. 고유번호
     //로그인 후 서버가 만들어 줄 클라이언트의 정보에 대한 생성자.
     public Client_Handler(Socket user, DataInputStream dis, DataOutputStream dos, boolean CanPlay) throws IOException {
@@ -80,7 +80,7 @@ class Client_Handler implements Runnable {
             while (true) {
                 msg = dis.readUTF();
                 System.out.println(msg);
-                Spread(msg);
+                //Spread(msg);
                 //customed protocol
                 MSG_Processor(msg);
             }
@@ -110,55 +110,52 @@ class Client_Handler implements Runnable {
     }
 
     public void MSG_Processor(String msg) throws IOException {
-        st = new StringTokenizer(msg, "##");
+        StringTokenizer st = new StringTokenizer(msg, "#");
         String tempHeader = st.nextToken();
-        String store = null;
-        if(tempHeader.equals(TAG.CHAT.name())) {
-            msg = userID + "##" + st.nextToken();
-            System.out.println(msg);
-            for(Client_Handler User : Server.user_list) {
-                User.dos.writeUTF(msg);
-            }
-        }
-        else if(tempHeader.equals(TAG.INVITE.name())) {
-            //이 경우엔 HEADER를 INVITE_REPLY로 설정하고 다시 Client에게 보낸 뒤 유저의 정보를 받아온다.
-            System.out.println(msg);
-            dos.writeUTF(TAG.INVITE_REPLY.name() + "##" + "초대하실 유저의 이름을 입력해주세요");
-        }
-        else if(tempHeader.equals(TAG.SHOW_INFO.name())) {
-        }
-        else if(tempHeader.equals(TAG.INVITE_REPLY.name())) {
-            System.out.println(msg);
-            store = st.nextToken();
-            for(Client_Handler User : Server.user_list) {
-                if(User.userID.equals(store)) {
-                    User.dos.writeUTF(TAG.INVITE_REQUEST.name()+"##"+this.userID+"##"+"want to invite you");
-                    // 초청을 수락할 경우 초대를 보낸 유저와 초대를 받은 유저 둘의 정보가 필요하므로 초대를 보낸 유저의 정보를 저장.
-                    break;
-                }
-            }
-        }
-        else if(tempHeader.equals(TAG.INVITE_PD.name())) {
-            String inviter = st.nextToken();
-            if(st.nextToken().equals("1")) {
-                for(Client_Handler User : Server.user_list) {
-                    if(User.userID.equals(inviter)) {
-                        User.dos.writeUTF(TAG.INVITE_PERMIT.name() + "##" + "초대 수락, 게임방으로 이동합니다.");
-                        this.dos.writeUTF(TAG.INVITE_PERMIT.name() + "##" + "초대 수락, 게임방으로 이동합니다.");
-                        User.CanPlay = false;
-                        this.CanPlay = false;
+        switch (tempHeader) {
+            case "INVITE" :
+                String inviter, invitee;
+                inviter = st.nextToken();
+                invitee = st.nextToken();
+                Server.inviter = inviter;
+                Server.invitee = invitee;
+                for(Client_Handler temp : Server.user_list) {
+                    if(temp.userID.equals(invitee)) {
+                        temp.dos.writeUTF("INVITE_REQUEST#" + inviter + " " + "want to invite you, (Y/N)");
+                        dos.flush();
                         break;
                     }
                 }
-            }
-            else {
-                for(Client_Handler User : Server.user_list) {
-                    if (User.userID.equals(inviter)) {
-                        User.dos.writeUTF(TAG.INVITE_DENY.name() + "##" + this.userID + " 님이 초대를 거절하셨습니다.");
+                /*for(Client_Handler temp : Server.user_list) {
+                    if(temp.userID.equals(inviter)) {
+                        temp.dos.writeUTF("CHAT#" + "SYSTEM" + " : " + "waiting for " + invitee + "'s answer");
+                        dos.flush();
                         break;
                     }
+                }*/
+                break;
+            case "CHAT" :
+                System.out.println(msg);
+                String tempMsg = st.nextToken();
+                for(Client_Handler temp : Server.user_list) {
+                    temp.dos.writeUTF("CHAT#" + this.userID + " : " + tempMsg);
                 }
-            }
+                break;
+            case "INVITE_REPLY" :
+                String temp = st.nextToken();
+                if(temp.equalsIgnoreCase("Y")) {
+                    for(Client_Handler templist : Server.user_list) {
+                        if(templist.userID.equals(Server.invitee) || templist.userID.equals(Server.inviter))
+                            templist.dos.writeUTF("CHAT#"+"Match Start.");
+                    }
+                }
+                else {
+                    for(Client_Handler templist : Server.user_list) {
+                        if(templist.userID.equals(Server.invitee) || templist.userID.equals(Server.inviter))
+                            templist.dos.writeUTF("CHAT#"+"Denied from " + Server.invitee);
+                    }
+                }
+                break;
         }
     }
 }

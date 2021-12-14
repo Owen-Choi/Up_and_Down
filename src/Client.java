@@ -14,6 +14,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.*;
@@ -28,7 +29,6 @@ import java.util.StringTokenizer;
 
 public class Client extends Application implements Initializable {
     static final int serverPort = 10033;
-    static StringTokenizer st;
     static String userID = null;
     static Socket user;
     static DataOutputStream dos;
@@ -39,10 +39,11 @@ public class Client extends Application implements Initializable {
     @FXML public Button sendChatting;
     @FXML public ListView<String> UserRanking;
     @FXML private ListView<String> UserList;
+    static String msg;
+    static String header = "CHAT#";
     Database db = new Database();
     ResultSet result1 = db.viewRank();
     ObservableList list = FXCollections.observableArrayList();
-
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("javaFX");
         Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));//login.fxml에 있는 정보를 불러옴
@@ -101,29 +102,8 @@ public class Client extends Application implements Initializable {
         } catch(IOException e) {
             e.printStackTrace();
         }
-        /*list.removeAll(list);
-        String a="woo";
-        String b="cheol";
-        String c="kim";
-        list.addAll(a, b, c);
-        UserList.getItems().addAll(list);*/
     }
 
-    public void handleBtnAction(ActionEvent event){
-        Platform.exit();
-    }
-
-    public void sendMessage(ActionEvent event) throws IOException {
-        // 여기서 server에게
-        String msg = ChattingField.getText();
-        dos.writeUTF('\n' + msg + '\n');
-        ChattingArea.appendText('\n' + msg + '\n');
-        ChattingField.clear();
-    }
-
-    public void appendMessage(String msg) {
-        this.ChattingArea.appendText(msg + '\n');
-    }
 
     void send(String data){
         // 데이터 전송 코드
@@ -133,8 +113,11 @@ public class Client extends Application implements Initializable {
                 try {
                     //byte[] byteArr = data.getBytes("UTF-8");
                     //OutputStream outputStream = user.getOutputStream();
-                    dos.writeUTF(data);
+                    dos.writeUTF(header + data);
                     dos.flush();
+                    ChattingField.clear();
+                    if(Client.header.equals("INVITE_REPLY#"))
+                        Client.header = "CHAT#";
                     //Platform.runLater(()->displayText('\n' + data));
                 } catch (IOException e) {
                     Platform.runLater(()->displayText("[서버 통신 안됨]"));
@@ -179,7 +162,7 @@ public class Client extends Application implements Initializable {
         String userName = null;
         Platform.runLater(() -> UserList.getItems().clear());
         list.removeAll(list);
-        st = new StringTokenizer(UserNameList, "/");
+        StringTokenizer st = new StringTokenizer(UserNameList, "/");
         while(st.hasMoreTokens()) {
             userName = st.nextToken();
             if(userName != null)
@@ -189,18 +172,19 @@ public class Client extends Application implements Initializable {
     }
 
     String HeadChecker(String data) {
-        st = new StringTokenizer(data, "#");
+        StringTokenizer st = new StringTokenizer(data, "#");
         String header = st.nextToken();
         if(header.equals("NEW_USER")) {
             String notice = st.nextToken();
             UpdateUserList(st.nextToken());
             return notice;
         }
-        else if(header.equals("CHAT")) {
+        else if(header.equals("INVITE_REQUEST")) {
+            Client.header = "INVITE_REPLY#";
             return st.nextToken();
         }
         else
-            return null;
+            return st.nextToken();
     }
 
     public void loadRank() throws SQLException {
@@ -210,7 +194,7 @@ public class Client extends Application implements Initializable {
         // 유저 수 받아와서 변수에 넣어줘야겠다.
 
         while(!result1.isLast()){
-            printStr=null;
+            printStr = null;
             result1.next();
             printStr = result1.getString("nickname") + " " + result1.getString("win") + "WIN " + result1.getString("draw") + "DRAW " + result1.getString("lose")+"LOSE";
             list.add(printStr);
@@ -231,7 +215,7 @@ public class Client extends Application implements Initializable {
                 Parent root = (Parent) loader.load();
 
                 UserChoiceController ucc = loader.getController();
-                ucc.initData(list);
+                ucc.initData(list, userID);
 
                 Stage stage = new Stage();
                 stage.setTitle("Choice");
@@ -242,6 +226,12 @@ public class Client extends Application implements Initializable {
                 e.printStackTrace();
             }
         }
+    }
+    public void initData(String data) throws IOException {
+        msg = data;
+        System.out.println(msg);
+        dos.writeUTF(msg);
+        receive();
     }
 
 }

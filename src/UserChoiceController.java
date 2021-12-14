@@ -16,7 +16,7 @@ public class UserChoiceController implements Initializable {
 
     @FXML private Button UserInfo;
     @FXML private Button UserVs;
-    String temp;
+    String temp, tempId;
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         UserInfo.setOnAction(e-> {
@@ -47,15 +47,14 @@ public class UserChoiceController implements Initializable {
         stage.show();
     }
     public void UserVsAction(ActionEvent e) throws IOException {//1:1신청하는 구현
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Info.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("Lobby.fxml"));
         Parent root = (Parent) loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("VS");
-        stage.setScene(new Scene(root));
-        stage.show();
+        Client client = loader.getController();
+        client.initData("INVITE"+"#"+tempId+"#"+temp);
     }
-    public void initData(String data) {
+    public void initData(String data, String id) {
         temp = data;
+        tempId = id;
     }
 
 }
