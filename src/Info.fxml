@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="265.0" prefWidth="546.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="InfoController">
+   <children>
+      <Label layoutX="70.0" layoutY="56.0" text="ID" />
+      <Label layoutX="52.0" layoutY="118.0" text="NAME" />
+      <Label layoutX="23.0" layoutY="185.0" text="NICKNAME" />
+      <Label layoutX="286.0" layoutY="185.0" text="E-MAIL" />
+      <Label layoutX="264.0" layoutY="118.0" text="CONNECTION" />
+      <Label layoutX="290.0" layoutY="56.0" text="RECORD" />
+      <Button fx:id="cancelBtn" layoutX="468.0" layoutY="227.0" mnemonicParsing="false" onAction="#close" prefHeight="24.0" prefWidth="49.0" text="EXIT" />
+      <Label fx:id="ID" layoutX="102.0" layoutY="56.0" prefHeight="10.0" prefWidth="155.0" />
+      <Label fx:id="NAME" layoutX="102.0" layoutY="118.0" prefHeight="14.0" prefWidth="155.0" />
+      <Label fx:id="NICKNAME" layoutX="102.0" layoutY="185.0" prefHeight="14.0" prefWidth="155.0" />
+      <Label fx:id="RECORD" layoutX="348.0" layoutY="56.0" prefHeight="14.0" prefWidth="155.0" />
+      <Label fx:id="CONNECTION" layoutX="348.0" layoutY="118.0" prefHeight="14.0" prefWidth="155.0" />
+      <Label fx:id="EMAIL" layoutX="348.0" layoutY="185.0" prefHeight="14.0" prefWidth="155.0" />
+   </children>
+</AnchorPane>

@@ -28,6 +28,13 @@ public class Server {
         user_list.add(client_handler);
         client_handler.setID();
         System.out.println("new user : " + client_handler.userID);
+        String nameList = "";
+        for(Client_Handler temp : user_list) {
+            nameList = nameList + '/' + temp.userID;
+        }
+        for(Client_Handler temp : user_list) {
+            temp.dos.writeUTF("NEW_USER#" + "new user : " + client_handler.userID + "#" + nameList);
+        }
         Thread t = new Thread(client_handler);
         t.start();
     }
@@ -98,7 +105,7 @@ class Client_Handler implements Runnable {
 
     public void Spread(String msg) throws IOException {
         for(Client_Handler temp : Server.user_list) {
-            temp.dos.writeUTF(msg);
+            temp.dos.writeUTF("CHAT#" + this.userID + " : " + msg);
         }
     }
 

@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -32,18 +33,12 @@ public class Client extends Application implements Initializable {
     static Socket user;
     static DataOutputStream dos;
     static DataInputStream dis;
-    @FXML
-    public TextField ChattingField;
-    @FXML
-    public TextArea ChattingArea;
-    @FXML
-    private TextArea UserRankingArea;
-    @FXML
-    private TextArea UserListArea;
-    @FXML
-    public Button sendChatting;
-    @FXML
-    public ListView<String> UserRanking;
+    @FXML public TextField ChattingField;
+    @FXML public TextArea ChattingArea;
+    @FXML private TextArea UserRankingArea;
+    @FXML public Button sendChatting;
+    @FXML public ListView<String> UserRanking;
+    @FXML private ListView<String> UserList;
     Database db = new Database();
     ResultSet result1 = db.viewRank();
     ObservableList list = FXCollections.observableArrayList();
@@ -61,13 +56,13 @@ public class Client extends Application implements Initializable {
         user = new Socket(ip, serverPort);
         dis = new DataInputStream(user.getInputStream());
         dos = new DataOutputStream(user.getOutputStream());
+        scene.getStylesheets().add("UserChoice.css");
     }
 
     public void OpenLobby(Button loginBtn, String id) throws IOException {
         Parent mainPage = FXMLLoader.load(getClass().getResource("Lobby.fxml"));
         StackPane root = (StackPane) loginBtn.getScene().getRoot();
         root.getChildren().add(mainPage);
-
         this.Client_Setting(id);
     }
 
@@ -98,13 +93,20 @@ public class Client extends Application implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         sendChatting.setOnAction(event -> send(ChattingField.getText()));
         try {
-            loadData();
+            loadRank();
+            //loadList();
             receive();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         } catch(IOException e) {
             e.printStackTrace();
         }
+        /*list.removeAll(list);
+        String a="woo";
+        String b="cheol";
+        String c="kim";
+        list.addAll(a, b, c);
+        UserList.getItems().addAll(list);*/
     }
 
     public void handleBtnAction(ActionEvent event){
@@ -123,18 +125,6 @@ public class Client extends Application implements Initializable {
         this.ChattingArea.appendText(msg + '\n');
     }
 
-    public void loadData() throws SQLException {
-        String printStr=null;
-        for(int i=0; i<4; i++) {
-            printStr=null;
-            result1.next();
-            printStr = result1.getString("nickname") + " " + result1.getString("win") + " " + result1.getString("draw") + " " + result1.getString("lose");
-            list.add(printStr);
-
-        }
-        UserRanking.getItems().addAll(list);
-    }
-
     void send(String data){
         // 데이터 전송 코드
         Thread thread = new Thread(){
@@ -145,7 +135,7 @@ public class Client extends Application implements Initializable {
                     //OutputStream outputStream = user.getOutputStream();
                     dos.writeUTF(data);
                     dos.flush();
-                    Platform.runLater(()->displayText('\n' + data));
+                    //Platform.runLater(()->displayText('\n' + data));
                 } catch (IOException e) {
                     Platform.runLater(()->displayText("[서버 통신 안됨]"));
                     //stopClient();
@@ -160,14 +150,16 @@ public class Client extends Application implements Initializable {
     void receive() throws IOException {
         // 데이터 받기 코드
         Thread thread = new Thread() {
+            String Input;
             @Override
             public void run() {
                 while (true) {
                     try {
-                        String data = dis.readUTF();
-                        System.out.println(data);
+                        Input = dis.readUTF();
+                        System.out.println(Input);
+                        String data = HeadChecker(Input);
                         //Platform.runLater(() -> displayText("[받기 완료]  " + data));
-                        Platform.runLater(() -> ChattingArea.appendText(data));
+                        Platform.runLater(() -> ChattingArea.appendText('\n' + data));
                     } catch (IOException e) {
                         Platform.runLater(() -> displayText("[서버 통신 안됨]"));
                         //stopClient();
@@ -183,5 +175,69 @@ public class Client extends Application implements Initializable {
         ChattingArea.appendText(text + "\n");
     }
 
+    void UpdateUserList(String UserNameList) {
+        String userName = null;
+        Platform.runLater(() -> UserList.getItems().clear());
+        list.removeAll(list);
+        st = new StringTokenizer(UserNameList, "/");
+        while(st.hasMoreTokens()) {
+            userName = st.nextToken();
+            if(userName != null)
+                list.add(userName);
+        }
+        Platform.runLater(() -> UserList.getItems().addAll(list));
+    }
+
+    String HeadChecker(String data) {
+        st = new StringTokenizer(data, "#");
+        String header = st.nextToken();
+        if(header.equals("NEW_USER")) {
+            String notice = st.nextToken();
+            UpdateUserList(st.nextToken());
+            return notice;
+        }
+        else if(header.equals("CHAT")) {
+            return st.nextToken();
+        }
+        else
+            return null;
+    }
+
+    public void loadRank() throws SQLException {
+        ResultSet result1 = db.viewRank();
+        String printStr=null;
+        list.removeAll(list);
+        // 유저 수 받아와서 변수에 넣어줘야겠다.
+
+        while(!result1.isLast()){
+            printStr=null;
+            result1.next();
+            printStr = result1.getString("nickname") + " " + result1.getString("win") + "WIN " + result1.getString("draw") + "DRAW " + result1.getString("lose")+"LOSE";
+            list.add(printStr);
+        }
+        UserRanking.getItems().addAll(list);
+    }
+
+    @FXML
+    public void displaySelected(MouseEvent event) throws IOException {
+        String list = UserList.getSelectionModel().getSelectedItem();
+
+        if(list==null || list.isEmpty()) {
+
+        }
+        else {
+            try{
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("UserChoice.fxml"));
+                Parent root = (Parent) loader.load();
+                Stage stage = new Stage();
+                stage.setTitle("Choice");
+                stage.setScene(new Scene(root));
+                stage.show();
+
+            }catch(Exception e) {
+
+            }
+        }
+    }
 
 }

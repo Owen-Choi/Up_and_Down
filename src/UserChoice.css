@@ -1,0 +1,17 @@
+.root {
+    background: #2ecc71;
+    font-size: 62.5%;
+}
+
+.button {
+    -fx-background-color:  #2ecc71;
+    -fx-border-radius: 5px;
+    -fx-display: block;
+    -fx-font-weight: bold;
+    -fx-text-transform: uppercase;
+}
+.button:hover {
+    -fx-background-color: #fff;
+    -fx-text-fill: #2ecc71;
+}
+
