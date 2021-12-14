@@ -1,20 +1,47 @@
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 
-public class Client extends Application {
-    static final int serverPort = 10032;
+public class Client extends Application implements Initializable {
+    static final int serverPort = 10033;
     static StringTokenizer st;
     static String userID = null;
-    public void start(Stage primaryStage)throws Exception{
+    static Socket user;
+    static DataOutputStream dos;
+    static DataInputStream dis;
+    @FXML public TextField ChattingField;
+    @FXML public TextArea ChattingArea;
+    @FXML private TextArea UserRankingArea;
+    @FXML private TextArea UserListArea;
+    @FXML public Button sendChatting;
+    @FXML public ListView<String> UserRanking;
+    Database db = new Database();
+    ResultSet result1 = db.viewRank();
+    ObservableList list = FXCollections.observableArrayList();
+    public void start(Stage primaryStage)throws Exception {
         primaryStage.setTitle("javaFX");
         Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));//login.fxml에 있는 정보를 불러옴
         Scene scene = new Scene(root);
@@ -25,6 +52,13 @@ public class Client extends Application {
         primaryStage.show();
     }
 
+    public void OpenLobby(Button loginBtn) throws IOException {
+        Parent mainPage = FXMLLoader.load(getClass().getResource("Lobby.fxml"));
+        StackPane root = (StackPane) loginBtn.getScene().getRoot();
+        root.getChildren().add(mainPage);
+        // 로비 열었고 마음만 먹으면 text field/area 접근은 가능해졌는데 어떻게 쓰레드에 접근하지?
+    }
+
     public static void main(String[] args) throws IOException, UnknownHostException {
         launch(args);
     }
@@ -32,56 +66,104 @@ public class Client extends Application {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         InetAddress ip = InetAddress.getByName("localhost");
         userID = uid;
-        Socket user = new Socket(ip, serverPort);
-        DataInputStream dis = new DataInputStream(user.getInputStream());
-        DataOutputStream dos = new DataOutputStream(user.getOutputStream());
+        user = new Socket(ip, serverPort);
+        dis = new DataInputStream(user.getInputStream());
+        dos = new DataOutputStream(user.getOutputStream());
         // ID broadcasting : 서버에게 클라이언트의 이름을 알려준다.
         dos.writeUTF(userID);
-        Writer writer = new Writer(user, dis, dos);
-        Reader reader = new Reader(user, dis, dos, writer);
+
+        Writer writer = new Writer(user, dis, dos, this, sendChatting);
+        Reader reader = new Reader(user, dis, dos, writer, this);
         Thread writer_thread = new Thread(writer);
         Thread reader_thread = new Thread(reader);
         writer_thread.start();
         reader_thread.start();
         System.out.println("대기실에 입장되셨습니다.");
     }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        sendChatting.setOnAction(event -> {
+            try {
+                sendMessage(event);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            loadData();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void handleBtnAction(ActionEvent event){
+        Platform.exit();
+    }
+
+    public void sendMessage(ActionEvent event) throws IOException {
+        // 여기서 server에게
+        String msg = ChattingField.getText();
+        dos.writeUTF('\n' + msg + '\n');
+        ChattingArea.appendText('\n' + msg + '\n');
+        ChattingField.clear();
+    }
+
+    public void appendMessage(String msg) {
+        this.ChattingArea.appendText(msg + '\n');
+    }
+
+    public void loadData() throws SQLException {
+        String printStr=null;
+        for(int i=0; i<4; i++) {
+            printStr=null;
+            result1.next();
+            printStr = result1.getString("nickname") + " " + result1.getString("win") + " " + result1.getString("draw") + " " + result1.getString("lose");
+            list.add(printStr);
+
+        }
+        UserRanking.getItems().addAll(list);
+    }
+
+
 }
 
 class Writer implements Runnable {
+    Client client;
     Socket userOwn;
     DataOutputStream dos;
     DataInputStream dis;
     String HeadTag = null;
     BufferedReader br;
+    Button sendChatting;
+
     // 소켓은 받을 필요 없나?
-    public Writer(Socket userOwn, DataInputStream dis, DataOutputStream dos) {
+    public Writer(Socket userOwn, DataInputStream dis, DataOutputStream dos, Client client, Button sendChatting) {
         this.userOwn = userOwn;
         this.dis = dis;
         this.dos = dos;
-        br = new BufferedReader(new InputStreamReader(System.in));
+        this.br = new BufferedReader(new InputStreamReader(System.in));
+        this.client = client;
+        this.sendChatting = sendChatting;
     }
-
     @Override
     public void run() {
-        try {
             //ChangeMode에서 나오지 않으면 초대에 응할 수 없다.
             //이에 대한 조치는 플레이어가 원할때만 모드를 바꿀 수 있게 한다.
             HeadTag = TAG.CHAT.name();
             System.out.println("If you want to Change mode, please enter \"ChangeMode\" ");
             while(true) {
-                String msgToSend = br.readLine();
-                if(msgToSend.equals("ChangeMode")) {
-                    ChangeMode();
-                }
-                else {
-                    dos.writeUTF(HeadTag + "##" + msgToSend);
-                    //System.out.println(HeadTag + "##" + msgToSend);
-                }
+                sendChatting.setOnAction(event -> {
+                    try {
+                        client.sendMessage(event);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             }
-        }catch(IOException e) {
-            e.printStackTrace();
-        }
+
     }
+
 
     public boolean ChangeMode() throws IOException{
         System.out.println("please choose the mode number : ");
@@ -114,6 +196,7 @@ class Writer implements Runnable {
     public void HeadTag_Setter(String newHeadTag) {
         HeadTag = newHeadTag;
     }
+
 }
 
 class Reader implements Runnable {
@@ -122,18 +205,26 @@ class Reader implements Runnable {
     DataInputStream dis;
     StringTokenizer st;
     Writer writer;
-    public Reader(Socket userOwn, DataInputStream dis, DataOutputStream dos, Writer writer) {
+    TextArea ta;
+    Client client;
+    public Reader(Socket userOwn, DataInputStream dis, DataOutputStream dos, Writer writer,
+                  Client client) {
         this.userOwn = userOwn;
         this.dis = dis;
         this.dos = dos;
         this.writer = writer;
+        this.client = client;
     }
     @Override
     public void run() {
-        String msgToRead;
         try {
             while(true) {
-                msgToRead = dis.readUTF();
+                String msgToRead = dis.readUTF();
+                //ta.appendText(msgToRead);
+                //이 방법은 통하질 않으니 여기서 MainController에 접근해보자.
+                Platform.runLater(() ->{
+                    client.ChattingArea.appendText(msgToRead);
+                });
                 MSG_Processor(msgToRead);
             }
 

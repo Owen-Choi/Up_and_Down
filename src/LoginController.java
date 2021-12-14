@@ -73,11 +73,19 @@ public class LoginController implements Initializable{
                 Alert alert = new Alert(AlertType.INFORMATION);
                 alert.setContentText("로그인 성공");
                 alert.show();
-                Parent mainPage = FXMLLoader.load(getClass().getResource("Lobby.fxml"));
+                // 이 부분을 Client에서 담당해볼까? 함수로 따로 만들어서.
+                // 그렇게 하면 서버는 클라이언트로 정보를 보낼 수 있고
+                // 서버는 다시 Client Handler를 통해서 모든 유저들에게 전파할 수 있다.
+                // 하나 문제는 클라이언트가 그렇게 정보를 받은 뒤 화면에 어떻게 띄울 지.
+                // 생각해보니 메인 컨트롤러에서 하던 역할을 그냥 해주면 되는 거 아닌가?
+                // 레츠 게릿
+                /*Parent mainPage = FXMLLoader.load(getClass().getResource("Lobby.fxml"));
                 StackPane root = (StackPane) loginBtn.getScene().getRoot();
-                root.getChildren().add(mainPage);
+                root.getChildren().add(mainPage);*/
+
                 // 클라이언트 만들기
                 Client client = new Client();
+                client.OpenLobby(loginBtn);
                 client.Client_Setting(uId);
             }
             else{

@@ -1,3 +1,5 @@
+import javafx.scene.Parent;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -6,7 +8,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 public class Server {
-    static final int port = 10032;
+    static final int port = 10033;
     static int user_num = 0;
     static Accept accept_thread;
     static Vector<Client_Handler> user_list = new Vector<>();
@@ -29,13 +31,22 @@ public class Server {
         Thread t = new Thread(client_handler);
         t.start();
     }
+
+    public void MSGSend(String msg) throws IOException{
+        for(Client_Handler temp : user_list) {
+            temp.dos.writeUTF(msg);
+        }
+    }
+
     /*public String getID() {
         return nameStore;
     }
     public void setID(String tempName) {
         nameStore = tempName;
     }*/
+
 }
+
 
 class Client_Handler implements Runnable {
     Socket user;
@@ -63,13 +74,6 @@ class Client_Handler implements Runnable {
                 msg = dis.readUTF();
                 //customed protocol
                 MSG_Processor(msg);
-                /*if (!MSGCheck(msg)) {
-                    System.out.println(this.userID + " : " + msg);
-                    // 일단은 입력받은 메세지 모두에게 전달, 여기서 귓속말, 혹은 게임초대 등의 기능을 넣고싶으면 프로토콜을 정의해야한다.
-                    for (Client_Handler User : NET_term_Server.user_list) {
-                        User.dos.writeUTF(this.userID + "##" + msg);
-                    }
-                }*/
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -89,6 +93,8 @@ class Client_Handler implements Runnable {
         ID_broadCast = dis.readUTF();
         this.userID = ID_broadCast;
     }
+
+
     public void MSG_Processor(String msg) throws IOException {
         st = new StringTokenizer(msg, "##");
         String tempHeader = st.nextToken();

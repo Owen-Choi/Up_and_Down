@@ -1,4 +1,4 @@
-import javafx.application.Platform;
+/*import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -39,6 +39,7 @@ public class MainController implements Initializable {
     }
 
     public void sendMessage(ActionEvent event) {
+        // 여기서 server에게
         String msg = ChattingField.getText();
         ChattingArea.appendText('\n' + msg + '\n');
         ChattingField.clear();
@@ -46,7 +47,7 @@ public class MainController implements Initializable {
 
     public void loadData() throws SQLException {
         String printStr=null;
-        for(int i=0; i<5; i++) {
+        for(int i=0; i<4; i++) {
             printStr=null;
             result1.next();
             printStr = result1.getString("nickname") + " " + result1.getString("win") + " " + result1.getString("draw") + " " + result1.getString("lose");
@@ -55,7 +56,8 @@ public class MainController implements Initializable {
         }
         UserRanking.getItems().addAll(list);
     }
-}
+
+}*/
 
 
 
