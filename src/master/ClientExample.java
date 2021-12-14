@@ -61,12 +61,12 @@ public class ClientExample extends Application {
     }
 
     void receive(){
-        // 데이터 받기 코드
-        while(true){
-            try {
-                byte[] byteArr = new byte[100];
-                InputStream inputStream = socket.getInputStream();
-                int readByteCount = inputStream.read(byteArr);
+                    // 데이터 받기 코드
+                    while(true){
+                        try {
+                            byte[] byteArr = new byte[100];
+                            InputStream inputStream = socket.getInputStream();
+                            int readByteCount = inputStream.read(byteArr);
 
                 if(readByteCount == -1) { throw new IOException();}
 
@@ -146,7 +146,7 @@ public class ClientExample extends Application {
         root.setBottom(bottom);
 
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("master/app.css").toString());
+        scene.getStylesheets().add(getClass().getResource("app.css").toString());
         primaryStage.setScene(scene);
         primaryStage.setTitle("Client");
         primaryStage.setOnCloseRequest(event->stopClient());

@@ -85,8 +85,8 @@ public class LoginController implements Initializable{
 
                 // 클라이언트 만들기
                 Client client = new Client();
-                client.OpenLobby(loginBtn);
-                client.Client_Setting(uId);
+                client.OpenLobby(loginBtn, uId);
+                //client.Client_Setting(uId);
             }
             else{
                 Alert alert = new Alert(AlertType.INFORMATION);

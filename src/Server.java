@@ -72,6 +72,8 @@ class Client_Handler implements Runnable {
         try {
             while (true) {
                 msg = dis.readUTF();
+                System.out.println(msg);
+                Spread(msg);
                 //customed protocol
                 MSG_Processor(msg);
             }
@@ -94,6 +96,11 @@ class Client_Handler implements Runnable {
         this.userID = ID_broadCast;
     }
 
+    public void Spread(String msg) throws IOException {
+        for(Client_Handler temp : Server.user_list) {
+            temp.dos.writeUTF(msg);
+        }
+    }
 
     public void MSG_Processor(String msg) throws IOException {
         st = new StringTokenizer(msg, "##");
